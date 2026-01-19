@@ -1,6 +1,7 @@
 package email
 
 import (
+	"crypto/tls"
 	"fmt"
 	"net/smtp"
 	"strings"
@@ -17,7 +18,47 @@ func NewSender(cfg config.Config) *Sender {
 }
 
 func (s *Sender) Send(to, subject, body string) error {
+	// Connect to the SMTP server
+	addr := fmt.Sprintf("%s:%s", s.config.SMTPHost, s.config.SMTPPort)
+
+	// Create TLS config
+	tlsConfig := &tls.Config{
+		ServerName: s.config.SMTPHost,
+	}
+
+	// Connect to server
+	client, err := smtp.Dial(addr)
+	if err != nil {
+		return fmt.Errorf("failed to connect to SMTP server: %w", err)
+	}
+	defer client.Close()
+
+	// Start TLS
+	if err = client.StartTLS(tlsConfig); err != nil {
+		return fmt.Errorf("failed to start TLS: %w", err)
+	}
+
+	// Authenticate
 	auth := smtp.PlainAuth("", s.config.SMTPUser, s.config.SMTPPassword, s.config.SMTPHost)
+	if err = client.Auth(auth); err != nil {
+		return fmt.Errorf("authentication failed: %w", err)
+	}
+
+	// Set sender
+	if err = client.Mail(s.config.FromEmail); err != nil {
+		return fmt.Errorf("failed to set sender: %w", err)
+	}
+
+	// Set recipient
+	if err = client.Rcpt(to); err != nil {
+		return fmt.Errorf("failed to set recipient: %w", err)
+	}
+
+	// Send message body
+	w, err := client.Data()
+	if err != nil {
+		return fmt.Errorf("failed to open data writer: %w", err)
+	}
 
 	msg := []byte(fmt.Sprintf("From: %s\r\n"+
 		"To: %s\r\n"+
@@ -27,8 +68,16 @@ func (s *Sender) Send(to, subject, body string) error {
 		"\r\n"+
 		"%s\r\n", s.config.FromEmail, to, subject, body))
 
-	addr := fmt.Sprintf("%s:%s", s.config.SMTPHost, s.config.SMTPPort)
-	return smtp.SendMail(addr, auth, s.config.FromEmail, []string{to}, msg)
+	if _, err = w.Write(msg); err != nil {
+		return fmt.Errorf("failed to write message: %w", err)
+	}
+
+	if err = w.Close(); err != nil {
+		return fmt.Errorf("failed to close data writer: %w", err)
+	}
+
+	// Quit
+	return client.Quit()
 }
 
 func (s *Sender) SendContactNotification(name, email, subject, message string) error {
