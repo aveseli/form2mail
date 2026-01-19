@@ -10,6 +10,24 @@ A simple Go service that handles HTML contact form submissions and sends email n
 - Supports both JSON and form-urlencoded data
 - CORS enabled for cross-origin requests
 - HTML formatted emails
+- Clean, structured codebase following Go best practices
+
+## Project Structure
+
+```
+form2mail/
+├── cmd/
+│   └── server/          # Application entry point
+│       └── main.go
+├── internal/            # Private application code
+│   ├── config/          # Configuration management
+│   ├── email/           # Email sending functionality
+│   └── handler/         # HTTP request handlers
+├── .env.example         # Example environment variables
+├── .gitignore
+├── go.mod
+└── README.md
+```
 
 ## Setup
 
@@ -41,24 +59,13 @@ If using Gmail, you'll need to create an App Password:
 
 ## Running
 
-### Using environment variables:
+### Development:
 ```bash
 export SMTP_USER="your-email@gmail.com"
 export SMTP_PASSWORD="your-app-password"
 export RECIPIENT_EMAIL="recipient@example.com"
 export FROM_EMAIL="your-email@gmail.com"
-go run main.go
-```
-
-### Or with a .env file loader (recommended):
-First, install godotenv:
-```bash
-go get github.com/joho/godotenv
-```
-
-Then run:
-```bash
-go run main.go
+go run cmd/server/main.go
 ```
 
 ## API Usage
@@ -135,8 +142,13 @@ fetch('http://localhost:8080/contact', {
 ## Building
 
 ```bash
-go build -o form2mail
+go build -o form2mail cmd/server/main.go
 ./form2mail
+```
+
+Or build and run in one step:
+```bash
+go build -o form2mail cmd/server/main.go && ./form2mail
 ```
 
 ## License
