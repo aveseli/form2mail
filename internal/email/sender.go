@@ -21,11 +21,6 @@ func (s *Sender) Send(to, subject, body string) error {
 	// Connect to the SMTP server
 	addr := fmt.Sprintf("%s:%s", s.config.SMTPHost, s.config.SMTPPort)
 
-	// Create TLS config
-	tlsConfig := &tls.Config{
-		ServerName: s.config.SMTPHost,
-	}
-
 	// Connect to server
 	client, err := smtp.Dial(addr)
 	if err != nil {
@@ -33,9 +28,19 @@ func (s *Sender) Send(to, subject, body string) error {
 	}
 	defer client.Close()
 
-	// Start TLS
-	if err = client.StartTLS(tlsConfig); err != nil {
-		return fmt.Errorf("failed to start TLS: %w", err)
+	// Send EHLO/HELO
+	if err = client.Hello(s.config.SMTPHost); err != nil {
+		return fmt.Errorf("failed to send HELLO: %w", err)
+	}
+
+	// Check if STARTTLS is supported and use it
+	if ok, _ := client.Extension("STARTTLS"); ok {
+		tlsConfig := &tls.Config{
+			ServerName: s.config.SMTPHost,
+		}
+		if err = client.StartTLS(tlsConfig); err != nil {
+			return fmt.Errorf("failed to start TLS: %w", err)
+		}
 	}
 
 	// Authenticate
