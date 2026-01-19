@@ -1,5 +1,10 @@
+# Git
+.git
+.gitignore
+
 # Environment
 .env
+.env.local
 
 # Build artifacts
 form2mail
@@ -11,4 +16,10 @@ form2mail
 .idea
 *.swp
 *.swo
-*~
+
+# Documentation
+README.md
+LICENSE
+
+# GitHub
+.github

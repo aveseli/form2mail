@@ -74,6 +74,54 @@ export FROM_EMAIL="your-email@gmail.com"
 go run cmd/server/main.go
 ```
 
+### Using Docker:
+
+**Pull from GitHub Container Registry:**
+```bash
+docker pull ghcr.io/YOUR_USERNAME/form2mail:latest
+```
+
+**Run the container:**
+```bash
+docker run -d \
+  -p 8080:8080 \
+  -e SMTP_HOST="smtp.gmail.com" \
+  -e SMTP_PORT="587" \
+  -e SMTP_USER="your-email@gmail.com" \
+  -e SMTP_PASSWORD="your-app-password" \
+  -e FROM_EMAIL="your-email@gmail.com" \
+  -e RECIPIENT_EMAIL="recipient@example.com" \
+  -e CORS_ORIGIN="*" \
+  --name form2mail \
+  ghcr.io/YOUR_USERNAME/form2mail:latest
+```
+
+**Or using docker-compose:**
+```yaml
+version: '3.8'
+services:
+  form2mail:
+    image: ghcr.io/YOUR_USERNAME/form2mail:latest
+    ports:
+      - "8080:8080"
+    environment:
+      - SMTP_HOST=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_USER=your-email@gmail.com
+      - SMTP_PASSWORD=your-app-password
+      - FROM_EMAIL=your-email@gmail.com
+      - RECIPIENT_EMAIL=recipient@example.com
+      - CORS_ORIGIN=*
+    restart: unless-stopped
+```
+
+**Build locally:**
+```bash
+docker build -t form2mail .
+docker run -p 8080:8080 --env-file .env form2mail
+```
+
+
 ## API Usage
 
 ### Endpoint
@@ -147,6 +195,7 @@ fetch('http://localhost:8080/contact', {
 
 ## Building
 
+### Local Build:
 ```bash
 go build -o form2mail cmd/server/main.go
 ./form2mail
@@ -156,6 +205,25 @@ Or build and run in one step:
 ```bash
 go build -o form2mail cmd/server/main.go && ./form2mail
 ```
+
+### Docker Build:
+```bash
+docker build -t form2mail .
+```
+
+## GitHub Container Registry
+
+This project automatically builds and pushes Docker images to GitHub Container Registry when you push to the main branch or create tags.
+
+**Image naming:**
+- Latest: `ghcr.io/YOUR_USERNAME/form2mail:latest`
+- Tagged: `ghcr.io/YOUR_USERNAME/form2mail:v1.0.0`
+- Branch: `ghcr.io/YOUR_USERNAME/form2mail:main`
+
+**To use the image, you need to:**
+1. Make the package public in GitHub (Settings > Packages > form2mail > Package settings > Change visibility)
+2. Or authenticate: `echo $GITHUB_TOKEN | docker login ghcr.io -u YOUR_USERNAME --password-stdin`
+
 
 ## License
 
