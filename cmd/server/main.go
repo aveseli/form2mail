@@ -22,7 +22,7 @@ func main() {
 	emailSender := email.NewSender(cfg)
 
 	// Initialize handler
-	contactHandler := handler.NewContactHandler(emailSender)
+	contactHandler := handler.NewContactHandler(emailSender, cfg.CORSOrigin)
 
 	// Register routes
 	http.Handle("/contact", contactHandler)

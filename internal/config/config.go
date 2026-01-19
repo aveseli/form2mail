@@ -10,6 +10,7 @@ type Config struct {
 	RecipientEmail string
 	FromEmail      string
 	ServerPort     string
+	CORSOrigin     string
 }
 
 func Load() Config {
@@ -21,6 +22,7 @@ func Load() Config {
 		RecipientEmail: getEnv("RECIPIENT_EMAIL", ""),
 		FromEmail:      getEnv("FROM_EMAIL", ""),
 		ServerPort:     getEnv("SERVER_PORT", "8080"),
+		CORSOrigin:     getEnv("CORS_ORIGIN", "*"),
 	}
 }
 

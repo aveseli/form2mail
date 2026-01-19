@@ -18,11 +18,13 @@ type ContactForm struct {
 
 type ContactHandler struct {
 	emailSender *email.Sender
+	corsOrigin  string
 }
 
-func NewContactHandler(emailSender *email.Sender) *ContactHandler {
+func NewContactHandler(emailSender *email.Sender, corsOrigin string) *ContactHandler {
 	return &ContactHandler{
 		emailSender: emailSender,
+		corsOrigin:  corsOrigin,
 	}
 }
 
@@ -34,7 +36,7 @@ func (h *ContactHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Enable CORS
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Origin", h.corsOrigin)
 	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 

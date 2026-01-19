@@ -47,7 +47,13 @@ SMTP_PASSWORD=your-app-password
 FROM_EMAIL=your-email@gmail.com
 RECIPIENT_EMAIL=recipient@example.com
 SERVER_PORT=8080
+CORS_ORIGIN=*
 ```
+
+**CORS Configuration:**
+- Use `*` to allow all origins (default)
+- Use a specific domain like `https://yourdomain.com` to restrict access
+- Use comma-separated values for multiple domains (not currently supported, use `*` or single domain)
 
 ### Gmail Setup
 
