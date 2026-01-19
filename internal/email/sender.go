@@ -13,6 +13,33 @@ type Sender struct {
 	config config.Config
 }
 
+// loginAuth implements AUTH LOGIN authentication for Office365/Outlook
+type loginAuth struct {
+	username, password string
+}
+
+func LoginAuth(username, password string) smtp.Auth {
+	return &loginAuth{username, password}
+}
+
+func (a *loginAuth) Start(server *smtp.ServerInfo) (string, []byte, error) {
+	return "LOGIN", []byte(a.username), nil
+}
+
+func (a *loginAuth) Next(fromServer []byte, more bool) ([]byte, error) {
+	if more {
+		switch string(fromServer) {
+		case "Username:":
+			return []byte(a.username), nil
+		case "Password:":
+			return []byte(a.password), nil
+		default:
+			return nil, fmt.Errorf("unknown from server: %s", string(fromServer))
+		}
+	}
+	return nil, nil
+}
+
 func NewSender(cfg config.Config) *Sender {
 	return &Sender{config: cfg}
 }
@@ -41,12 +68,20 @@ func (s *Sender) Send(to, subject, body string) error {
 		if err = client.StartTLS(tlsConfig); err != nil {
 			return fmt.Errorf("failed to start TLS: %w", err)
 		}
+		// Re-send EHLO after STARTTLS
+		if err = client.Hello(s.config.SMTPHost); err != nil {
+			return fmt.Errorf("failed to send HELLO after STARTTLS: %w", err)
+		}
 	}
 
-	// Authenticate
-	auth := smtp.PlainAuth("", s.config.SMTPUser, s.config.SMTPPassword, s.config.SMTPHost)
+	// Authenticate - Try LOGIN auth first (works better with Outlook)
+	auth := LoginAuth(s.config.SMTPUser, s.config.SMTPPassword)
 	if err = client.Auth(auth); err != nil {
-		return fmt.Errorf("authentication failed: %w", err)
+		// If LOGIN fails, try PLAIN auth as fallback
+		auth = smtp.PlainAuth("", s.config.SMTPUser, s.config.SMTPPassword, s.config.SMTPHost)
+		if err = client.Auth(auth); err != nil {
+			return fmt.Errorf("authentication failed: %w", err)
+		}
 	}
 
 	// Set sender
