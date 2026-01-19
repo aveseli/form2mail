@@ -29,13 +29,7 @@ func NewContactHandler(emailSender *email.Sender, corsOrigin string) *ContactHan
 }
 
 func (h *ContactHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// Only allow POST requests
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	// Enable CORS
+	// Set CORS headers first (before any method checks)
 	w.Header().Set("Access-Control-Allow-Origin", h.corsOrigin)
 	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
@@ -43,6 +37,12 @@ func (h *ContactHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Handle preflight OPTIONS request
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	// Only allow POST requests for actual form submission
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
