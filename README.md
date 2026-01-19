@@ -23,8 +23,15 @@ form2mail/
 │   ├── config/          # Configuration management
 │   ├── email/           # Email sending functionality
 │   └── handler/         # HTTP request handlers
+├── .github/
+│   └── workflows/       # GitHub Actions workflows
+│       └── docker-build.yml
 ├── .env.example         # Example environment variables
+├── .dockerignore
 ├── .gitignore
+├── AGENTS.md            # Guidelines for AI coding agents
+├── docker-compose.yml   # Docker Compose configuration
+├── Dockerfile           # Multi-stage Docker build
 ├── go.mod
 └── README.md
 ```
@@ -78,7 +85,7 @@ go run cmd/server/main.go
 
 **Pull from GitHub Container Registry:**
 ```bash
-docker pull ghcr.io/YOUR_USERNAME/form2mail:latest
+docker pull ghcr.io/aveseli/form2mail:latest
 ```
 
 **Run the container:**
@@ -93,7 +100,7 @@ docker run -d \
   -e RECIPIENT_EMAIL="recipient@example.com" \
   -e CORS_ORIGIN="*" \
   --name form2mail \
-  ghcr.io/YOUR_USERNAME/form2mail:latest
+  ghcr.io/aveseli/form2mail:latest
 ```
 
 **Or using docker-compose:**
@@ -101,7 +108,7 @@ docker run -d \
 version: '3.8'
 services:
   form2mail:
-    image: ghcr.io/YOUR_USERNAME/form2mail:latest
+    image: ghcr.io/aveseli/form2mail:latest
     ports:
       - "8080:8080"
     environment:
@@ -216,14 +223,65 @@ docker build -t form2mail .
 This project automatically builds and pushes Docker images to GitHub Container Registry when you push to the main branch or create tags.
 
 **Image naming:**
-- Latest: `ghcr.io/YOUR_USERNAME/form2mail:latest`
-- Tagged: `ghcr.io/YOUR_USERNAME/form2mail:v1.0.0`
-- Branch: `ghcr.io/YOUR_USERNAME/form2mail:main`
+- Latest: `ghcr.io/aveseli/form2mail:latest`
+- Tagged: `ghcr.io/aveseli/form2mail:v1.0.0`
+- Branch: `ghcr.io/aveseli/form2mail:main`
 
 **To use the image, you need to:**
 1. Make the package public in GitHub (Settings > Packages > form2mail > Package settings > Change visibility)
-2. Or authenticate: `echo $GITHUB_TOKEN | docker login ghcr.io -u YOUR_USERNAME --password-stdin`
+2. Or authenticate: `echo $GITHUB_TOKEN | docker login ghcr.io -u aveseli --password-stdin`
 
+## Development
+
+### Prerequisites
+- Go 1.23 or higher
+- Docker (optional, for containerized deployment)
+
+### Running Tests
+```bash
+# Run all tests
+go test ./...
+
+# Run tests with coverage
+go test -cover ./...
+
+# Run tests with race detector
+go test -race ./...
+```
+
+### Code Formatting
+```bash
+# Format all code (run before committing)
+go fmt ./...
+
+# Run linter
+go vet ./...
+
+# Tidy dependencies
+go mod tidy
+```
+
+### Contributing
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests and formatting
+5. Submit a pull request
+
+For detailed coding guidelines, see [AGENTS.md](AGENTS.md).
+
+## Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `SMTP_HOST` | No | `smtp.gmail.com` | SMTP server hostname |
+| `SMTP_PORT` | No | `587` | SMTP server port |
+| `SMTP_USER` | Yes | - | SMTP username/email |
+| `SMTP_PASSWORD` | Yes | - | SMTP password or app password |
+| `FROM_EMAIL` | Yes | - | Email address to send from |
+| `RECIPIENT_EMAIL` | Yes | - | Email address to receive contact forms |
+| `SERVER_PORT` | No | `8080` | HTTP server port |
+| `CORS_ORIGIN` | No | `*` | CORS allowed origin (`*` for all, or specific domain) |
 
 ## License
 
